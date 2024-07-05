@@ -3,6 +3,7 @@ package com.example.supermercadoapp
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -21,6 +22,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,6 +46,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
+                    // ProductData()
                     ProductScreen()
                 }
             }
@@ -63,7 +66,7 @@ fun Greetings() {
 
 @Composable
 fun ProductScreen() {
-    var products by remember { mutableStateOf(listOf<Product>()) }
+    var products = ProductData()
 
     Column(
         modifier = Modifier
@@ -126,6 +129,11 @@ fun ProductForm(onProductAdded: (Product) -> Unit) {
         }
     }
 }
+
+//@Composable
+//fun ProductData(modifier: Modifier = Modifier, viewModel: ProductViewModel = viewModel()) {
+//    val data = viewModel.productData.observeAsState().value
+//}
 
 @Composable
 fun ProductList(products: List<Product>) {

@@ -15,14 +15,30 @@ class ProductViewModel : ViewModel() {
     val productData: StateFlow<List<Product>> get() = _productData
 
     init {
+        getProducts()
+    }
+
+    private fun getProducts() {
         viewModelScope.launch {
-            getProducts()
+            try {
+                val productsList = RetrofitClient.productService.getProducts()
+                _productData.value = productsList
+            } catch (e: Exception) {
+                // Handle the exception
+            }
         }
     }
 
-    suspend fun getProducts() {
-        val productsList = RetrofitClient.productService.getProducts()
-        _productData.value = productsList
+    fun addProduct(product: Product) {
+        viewModelScope.launch {
+            try {
+                val newProduct = RetrofitClient.productService.addProduct(product)
+                _productData.value += newProduct
+            } catch (e: Exception) {
+                // Handle the exception
+            }
+        }
+
     }
 
 }

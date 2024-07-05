@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
@@ -32,7 +33,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.supermercadoapp.ui.theme.SupermercadoAppTheme
@@ -67,31 +70,17 @@ fun Greetings() {
 }
 
 @Composable
-fun ProductScreen() {
-    var products by remember { mutableStateOf(listOf<Product>()) }
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        Greetings()
-        Spacer(modifier = Modifier.height(20.dp))
-        ProductForm { product ->
-            products = products + product
-        }
-        Spacer(modifier = Modifier.height(20.dp))
-        ProductList()
-    }
-}
-
-@Composable
-fun ProductForm(onProductAdded: (Product) -> Unit) {
+fun ProductForm(viewModel: ProductViewModel = viewModel()) {
     var productName by remember { mutableStateOf("") }
     var productPrice by remember { mutableStateOf("") }
     var productCategory by remember { mutableStateOf("") }
+    val focusManager = LocalFocusManager.current
 
-    Column {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+    ) {
         TextField(
             value = productName,
             onValueChange = { productName = it },
@@ -103,8 +92,8 @@ fun ProductForm(onProductAdded: (Product) -> Unit) {
             value = productPrice,
             onValueChange = { productPrice = it },
             label = { Text("Preço") },
-            modifier = Modifier.fillMaxWidth(),
-            keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(8.dp))
         TextField(
@@ -116,35 +105,57 @@ fun ProductForm(onProductAdded: (Product) -> Unit) {
         Spacer(modifier = Modifier.height(16.dp))
         Button(
             onClick = {
-                val price = productPrice.replace(',', '.').toFloatOrNull()
-                if (productName.isNotBlank() && price != null && productCategory.isNotBlank()) {
-                    val product = Product(productName, price, productCategory)
-                    onProductAdded(product)
-                    productName = ""
-                    productPrice = ""
-                    productCategory = ""
-                }
+
+                // Formata a entrada de dados do usuário para o formato utilizado pela Api
+                val productPriceFormat = productPrice.replace(',', '.')
+
+                val product = Product(
+                    name = productName,
+                    price = productPriceFormat.toFloat(),
+                    category = productCategory
+                )
+                viewModel.addProduct(product)
+
+                // Limpar os campos ao enviar requisição
+                productName = ""
+                productPrice = ""
+                productCategory = ""
+
+                // Ocultar o teclado
+                focusManager.clearFocus()
             },
             modifier = Modifier.align(Alignment.CenterHorizontally)
         ) {
-            Text("Enviar")
+            Text("Adicionar Produto")
         }
     }
 }
 
 @Composable
-fun ProductList(viewModel: ProductViewModel = viewModel()) {
+fun ProductScreen(viewModel: ProductViewModel = viewModel()) {
     val productData by viewModel.productData.collectAsState()
 
-    LaunchedEffect(Unit) {
-        viewModel.getProducts()
+    Column {
+        Greetings()
+        Spacer(modifier = Modifier.height(20.dp))
+
+        ProductForm(viewModel = viewModel)
+        Spacer(modifier = Modifier.height(30.dp))
+
+        if(productData != emptyList<Product>()) {
+            LazyRow {
+                items(productData) { product ->
+                    ProductItem(product)
+                }
+            }
+        }
+        else {
+            Spacer(modifier = Modifier.height(30.dp))
+            Text(text = "Não há itens cadastrados em estoque", fontSize = 20.sp, color = Color.Gray, modifier = Modifier.align(Alignment.CenterHorizontally))
+        }
+
     }
 
-    LazyColumn {
-        items(productData) { product ->
-            ProductItem(product)
-        }
-    }
 }
 
 @Composable

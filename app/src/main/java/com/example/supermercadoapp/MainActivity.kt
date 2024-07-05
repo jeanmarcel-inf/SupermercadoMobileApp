@@ -21,6 +21,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateListOf
@@ -66,7 +68,7 @@ fun Greetings() {
 
 @Composable
 fun ProductScreen() {
-    var products = ProductData()
+    var products by remember { mutableStateOf(listOf<Product>()) }
 
     Column(
         modifier = Modifier
@@ -79,7 +81,7 @@ fun ProductScreen() {
             products = products + product
         }
         Spacer(modifier = Modifier.height(20.dp))
-        ProductList(products)
+        ProductList()
     }
 }
 
@@ -130,15 +132,16 @@ fun ProductForm(onProductAdded: (Product) -> Unit) {
     }
 }
 
-//@Composable
-//fun ProductData(modifier: Modifier = Modifier, viewModel: ProductViewModel = viewModel()) {
-//    val data = viewModel.productData.observeAsState().value
-//}
-
 @Composable
-fun ProductList(products: List<Product>) {
+fun ProductList(viewModel: ProductViewModel = viewModel()) {
+    val productData by viewModel.productData.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.getProducts()
+    }
+
     LazyColumn {
-        items(products) { product ->
+        items(productData) { product ->
             ProductItem(product)
         }
     }

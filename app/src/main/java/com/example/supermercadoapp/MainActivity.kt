@@ -23,6 +23,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -71,6 +72,10 @@ fun ProductScreen() {
     val context = LocalContext.current
     val databaseHelper = DatabaseHelper(context)
     var products by remember { mutableStateOf(listOf<Product>()) }
+
+    LaunchedEffect(Unit) {
+        products = databaseHelper.viewProduto()
+    }
 
     Column(
         modifier = Modifier

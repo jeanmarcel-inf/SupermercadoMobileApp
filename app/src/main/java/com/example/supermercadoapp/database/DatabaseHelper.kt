@@ -65,37 +65,21 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DB_NAME, null
             return ArrayList()
         }
 
-        var id: Int
-        var nome: String
-        var preco: Float
-        var categoria: String
+        cursor?.use {
+            if (it.moveToFirst()) {
+                do {
+                    val id = it.getInt(it.getColumnIndexOrThrow(PRODUTO_ID))
+                    val nome = it.getString(it.getColumnIndexOrThrow(PRODUTO_NOME))
+                    val preco = it.getFloat(it.getColumnIndexOrThrow(PRODUTO_PRECO))
+                    val categoria = it.getString(it.getColumnIndexOrThrow(PRODUTO_CATEGORIA))
 
-        if (cursor.moveToFirst()){
-            do {
-                id = cursor.getInt(cursor.getColumnIndex(PRODUTO_ID))
-                nome = cursor.getString(cursor.getColumnIndex(PRODUTO_NOME))
-                preco = cursor.getFloat(cursor.getColumnIndex(PRODUTO_PRECO))
-                categoria = cursor.getString(cursor.getColumnIndex(PRODUTO_CATEGORIA))
-
-                val prod = Product(id=id, name = nome, price = preco, category = categoria)
-                produtoList.add(prod)
-            } while (cursor.moveToNext())
+                    val prod = Product(id = id, name = nome, price = preco, category = categoria)
+                    produtoList.add(prod)
+                } while (it.moveToNext())
+            }
         }
         return produtoList
     }
-
-    /*fun updateProduto(produto: Product): Int{
-        val db = this.writableDatabase
-        val contentValues = ContentValues()
-        contentValues.put(PRODUTO_NOME, produto.name)
-        contentValues.put(PRODUTO_PRECO, produto.price)
-        contentValues.put(PRODUTO_CATEGORIA, produto.category)
-
-        val success = db.update(TABLE_PRODUTOS, contentValues, PRODUTO_ID + "=" + produto.id, null)
-        db.close()
-        return success
-    }
-     */
 
     fun deleteProduto(produto: Product): Int {
         val db = this.writableDatabase

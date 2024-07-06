@@ -6,12 +6,14 @@ import androidx.activity.compose.setContent
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -146,6 +148,7 @@ fun ProductScreen(viewModel: ProductViewModel = viewModel()) {
             LazyRow {
                 items(productData) { product ->
                     ProductItem(product)
+                    Spacer(modifier = Modifier.width(20.dp))
                 }
             }
         }
@@ -159,10 +162,17 @@ fun ProductScreen(viewModel: ProductViewModel = viewModel()) {
 }
 
 @Composable
-fun ProductItem(product: Product) {
+fun ProductItem(product: Product, viewModel: ProductViewModel = viewModel()) {
     Column(modifier = Modifier.padding(8.dp)) {
+        Text("Id: ${product.productId}")
         Text("Nome: ${product.name}")
         Text("Preço: R$ ${String.format(Locale("pt", "BR"), "%.2f", product.price).replace('.', ',')}")
         Text("Categoria: ${product.category}")
+        Button(onClick = {
+            viewModel.deleteProduct(product.productId)
+        }) {
+            Text(text = "X")
+        }
     }
+
 }

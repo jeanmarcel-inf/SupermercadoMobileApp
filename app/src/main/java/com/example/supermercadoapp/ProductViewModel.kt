@@ -33,12 +33,24 @@ class ProductViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 val newProduct = RetrofitClient.productService.addProduct(product)
+
                 _productData.value += newProduct
             } catch (e: Exception) {
                 // Handle the exception
             }
         }
 
+    }
+
+    fun deleteProduct(productId: Int) {
+        viewModelScope.launch {
+            try {
+                RetrofitClient.productService.deleteProduct(productId)
+                _productData.value = _productData.value.filterNot { it.productId == productId }
+            } catch (e: Exception) {
+                // Handle the exception
+            }
+        }
     }
 
 }

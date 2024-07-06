@@ -13,7 +13,7 @@ object RetrofitClient {
     // Use 10.0.2.2 para acessar o localhost do host a partir do emulador
     private const val BASE_URL = "http://10.0.2.2:8080/"
 
-    // Loga responses da API no console
+    // Log responses da API no console
     private val logging = HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY)
 
     private val okHttpClient = OkHttpClient.Builder()

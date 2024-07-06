@@ -1,6 +1,8 @@
 package com.example.supermercadoapp
 
 import android.os.Bundle
+import android.view.View
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Arrangement
@@ -12,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
@@ -28,9 +31,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.supermercadoapp.database.DatabaseHelper
 import com.example.supermercadoapp.ui.theme.SupermercadoAppTheme
 import java.util.Locale
 
@@ -39,7 +44,6 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             SupermercadoAppTheme {
-
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
@@ -50,6 +54,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+
 
 @Composable
 fun Greetings() {
@@ -63,6 +68,8 @@ fun Greetings() {
 
 @Composable
 fun ProductScreen() {
+    val context = LocalContext.current
+    val databaseHelper = DatabaseHelper(context)
     var products by remember { mutableStateOf(listOf<Product>()) }
 
     Column(
@@ -73,10 +80,13 @@ fun ProductScreen() {
         Greetings()
         Spacer(modifier = Modifier.height(20.dp))
         ProductForm { product ->
-            products = products + product
+            databaseHelper.addProduto(product)
+            products = databaseHelper.viewProduto()
         }
         Spacer(modifier = Modifier.height(20.dp))
-        ProductList(products)
+        ProductList(products = products){
+            products = databaseHelper.viewProduto()
+        }
     }
 }
 
@@ -85,6 +95,7 @@ fun ProductForm(onProductAdded: (Product) -> Unit) {
     var productName by remember { mutableStateOf("") }
     var productPrice by remember { mutableStateOf("") }
     var productCategory by remember { mutableStateOf("") }
+    val context = LocalContext.current
 
     Column {
         TextField(
@@ -113,11 +124,13 @@ fun ProductForm(onProductAdded: (Product) -> Unit) {
             onClick = {
                 val price = productPrice.replace(',', '.').toFloatOrNull()
                 if (productName.isNotBlank() && price != null && productCategory.isNotBlank()) {
-                    val product = Product(productName, price, productCategory)
+                    val product = Product(0, productName, price, productCategory)
                     onProductAdded(product)
                     productName = ""
                     productPrice = ""
                     productCategory = ""
+                } else {
+                    Toast.makeText(context, "Campos não podem estar vazios", Toast.LENGTH_SHORT).show()
                 }
             },
             modifier = Modifier.align(Alignment.CenterHorizontally)
@@ -128,19 +141,27 @@ fun ProductForm(onProductAdded: (Product) -> Unit) {
 }
 
 @Composable
-fun ProductList(products: List<Product>) {
-    LazyColumn {
+fun ProductList(products: List<Product>, onDeleteProduct: () -> Unit) {
+    LazyRow {
         items(products) { product ->
-            ProductItem(product)
+            ProductItem(product = product, onDelete = onDeleteProduct)
         }
     }
 }
 
 @Composable
-fun ProductItem(product: Product) {
+fun ProductItem(product: Product, onDelete: () -> Unit) {
+    val context = LocalContext.current
+    val databaseHelper = DatabaseHelper(context)
     Column(modifier = Modifier.padding(8.dp)) {
         Text("Nome: ${product.name}")
         Text("Preço: R$ ${String.format(Locale("pt", "BR"), "%.2f", product.price).replace('.', ',')}")
         Text("Categoria: ${product.category}")
+        Button(onClick = {
+            databaseHelper.deleteProduto(product)
+            onDelete()
+        }) {
+            Text(text = "X")
+        }
     }
 }
